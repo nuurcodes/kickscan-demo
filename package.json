@@ -1,15 +1,26 @@
 {
   "name": "kickscan-demo",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
+    "typecheck": "tsc",
+    "prepare": "husky install",
+    "bump-dry-run": "standard-version --dry-run",
+    "bump-patch": "standard-version --release-as patch --skip.commit",
+    "bump-minor": "standard-version --release-as minor --skip.commit",
+    "bump-major": "standard-version --release-as major --skip.commit",
     "eject": "expo eject"
   },
+  "lint-staged": {
+    "*.{js,ts,tsx}": "eslint --cache --fix"
+  },
   "dependencies": {
+    "babel-plugin-inline-dotenv": "^1.6.0",
     "expo": "~44.0.0",
     "expo-status-bar": "~1.2.0",
     "react": "17.0.1",
@@ -19,8 +30,21 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
+    "@commitlint/cli": "^16.1.0",
+    "@commitlint/config-conventional": "^16.0.0",
     "@types/react": "~17.0.21",
     "@types/react-native": "~0.64.12",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
+    "eslint": "^8.7.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-universe": "^10.0.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.3.1",
+    "prettier": "^2.5.1",
+    "standard-version": "^9.3.2",
+    "standard-version-expo": "^1.0.3",
     "typescript": "~4.3.5"
   },
   "private": true
