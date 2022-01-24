@@ -9,12 +9,7 @@ export default function App() {
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.container}>
           <StatusBar style='auto' />
-          <Button
-            backgroundColor='#30B650'
-            label='KICK SCAN'
-            labelStyle={{ fontWeight: '600' }}
-            enableShadow
-          />
+          <Button label='KICK SCAN' enableShadow />
         </View>
       </SafeAreaView>
     </GestureHandlerRootView>
