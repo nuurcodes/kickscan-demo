@@ -21,7 +21,7 @@ module.exports = function (api) {
             '@screens': './src/screens',
             '@services': './src/services',
             '@store': './src/store',
-            '@styles': './src/styles',
+            '@theme': './src/theme',
             '@models': './src/models',
             '@mutation': './src/mutation',
             '@query': './src/query',

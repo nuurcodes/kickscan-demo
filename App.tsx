@@ -1,26 +1,42 @@
+import React, { useCallback, useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Button } from 'react-native-ui-lib';
+import { NavigationContainer } from '@react-navigation/native';
+import { AuthNavigator, RootNavigator } from '@screens/index';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { IconComponent } from '@components/icons';
+import * as SplashScreen from 'expo-splash-screen';
+import * as Font from 'expo-font';
 
 export default function App() {
+  const [ready, setReady] = useState(false);
+  const [authenticated, setAuthenticated] = useState(true);
+
+  const startApp = useCallback(async () => {
+    await SplashScreen.preventAutoHideAsync();
+
+    const fonts = [IconComponent.font];
+    const fontAssets = fonts.map((font) => Font.loadAsync(font));
+    await Promise.all([...fontAssets]);
+
+    setReady(true);
+    await SplashScreen.hideAsync();
+  }, []);
+
+  useEffect(() => {
+    startApp();
+  }, [startApp]);
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <StatusBar style='auto' />
-          <Button label='KICK SCAN' enableShadow />
-        </View>
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <StatusBar style='auto' />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {ready ? (
+          <NavigationContainer>
+            {authenticated ? <RootNavigator /> : <AuthNavigator />}
+          </NavigationContainer>
+        ) : null}
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-});
