@@ -1,26 +1,27 @@
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Button } from 'react-native-ui-lib';
+import { NavigationContainer } from '@react-navigation/native';
+import { AuthNavigator, RootNavigator } from '@screens/index';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function App() {
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setAuthenticated(!authenticated);
+    }, 5000);
+  }, [authenticated]);
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <StatusBar style='auto' />
-          <Button label='KICK SCAN' enableShadow />
-        </View>
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <StatusBar style='auto' />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NavigationContainer>
+          {authenticated ? <RootNavigator /> : <AuthNavigator />}
+        </NavigationContainer>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-});
