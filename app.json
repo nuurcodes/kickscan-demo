@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.nuur.kickscan-demo"
+      "package": "com.nuur.kickscandemo"
     },
     "web": {
       "favicon": "./assets/favicon.png"
