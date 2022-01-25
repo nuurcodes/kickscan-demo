@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Dimensions, Vibration } from 'react-native';
 import { ScreenProps } from '@screens/index';
-import { View, Text, Button, Colors } from 'react-native-ui-lib';
+import { View, Text, Button } from 'react-native-ui-lib';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BarcodeFormat, useScanBarcodes } from 'vision-camera-code-scanner';
-import { Icon } from '@components/icons';
+import { AnimatedBarcodeRegion } from '@components/AnimatedBarcodeRegion';
 
 type Props = NativeStackScreenProps<ScreenProps, 'Example'>;
 
@@ -89,18 +89,7 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
               position: 'relative',
             }}
           >
-            <View>
-              <Icon name={'scan-outline'} size={248} color={Colors.white} />
-            </View>
-            <View
-              style={{
-                width: '100%',
-                position: 'absolute',
-                top: (Dimensions.get('screen').height - 80) / 2,
-                backgroundColor: 'white',
-                height: 2,
-              }}
-            />
+            <AnimatedBarcodeRegion />
             <View style={{ position: 'absolute', top: 0, right: 16 }}>
               <Button label={`(${scannedBarcodes.length}) done`} onPress={() => navigation.pop()} />
             </View>
