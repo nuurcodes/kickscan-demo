@@ -40,7 +40,8 @@
     "react-native-screens": "^3.10.2",
     "react-native-ui-lib": "^6.8.1",
     "react-native-vision-camera": "^2.12.0",
-    "react-native-web": "0.17.1"
+    "react-native-web": "0.17.1",
+    "vision-camera-code-scanner": "^0.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
