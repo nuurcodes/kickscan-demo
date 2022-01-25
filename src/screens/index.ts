@@ -8,12 +8,21 @@ import { screenDefaultOptions, tabBarDefaultOptions } from '@services/navigation
 import { Login } from '@screens/auth/Login';
 import { Register } from '@screens/auth/Register';
 import { ResetPassword } from '@screens/auth/ResetPassword';
+import { Scan } from '@screens/scan';
 
 export type Tabs = 'Main' | 'WIP' | 'Settings';
-export type Modal = 'ExampleModal';
-export type Screen = 'Main' | 'Example' | 'Settings' | 'Login' | 'Register' | 'ResetPassword';
+export type Modal = 'ScanModal' | 'ExampleModal';
+export type Screen =
+  | 'Main'
+  | 'Example'
+  | 'Settings'
+  | 'Login'
+  | 'Register'
+  | 'ResetPassword'
+  | 'Scan';
 
 export type ModalProps = {
+  ScanModal: undefined;
   ExampleModal: undefined;
 };
 export type ScreenProps = {
@@ -72,11 +81,20 @@ const screens: ScreenLayouts = {
       ...screenDefaultOptions(),
     }),
   },
+  Scan: {
+    name: 'Scan',
+    component: Scan,
+    options: () => ({
+      title: 'Scan',
+      headerShown: false,
+    }),
+  },
 };
 const HomeStack = () => genStackNavigator([screens.Main, screens.Example]);
 const ExampleStack = () => genStackNavigator([screens.Example]);
 const SettingsStack = () => genStackNavigator([screens.Settings]);
-const ExampleModalStack = () => genStackNavigator([screens.Main, screens.Example]);
+const ExampleModalStack = () => genStackNavigator([screens.Main]);
+const ScanModalStack = () => genStackNavigator([screens.Scan]);
 const AuthStack = () => genStackNavigator([screens.Login, screens.Register, screens.ResetPassword]);
 
 // Tabs
@@ -117,11 +135,18 @@ const modals: ModalScreenLayouts = {
       title: 'ExampleModal',
     }),
   },
+  ScanModal: {
+    name: 'ScanModal',
+    component: ScanModalStack,
+    options: () => ({
+      title: 'ScanModal',
+    }),
+  },
 };
 
 // Root Navigator
 export const RootNavigator = (): JSX.Element =>
-  genRootNavigator(TabNavigator, [modals.ExampleModal]);
+  genRootNavigator(TabNavigator, [modals.ExampleModal], [modals.ScanModal]);
 
 // Auth Navigator
 export const AuthNavigator = (): JSX.Element => AuthStack();

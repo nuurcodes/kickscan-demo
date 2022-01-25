@@ -25,10 +25,17 @@ export const genTabNavigator = (screens: GenTabNavigatorProps): JSX.Element => {
   return <Tab.Navigator>{tabScreens}</Tab.Navigator>;
 };
 
-export const genRootNavigator = (app: React.FC, modals: ModalScreenInfo[]): JSX.Element => {
+export const genRootNavigator = (
+  app: React.FC,
+  modals: ModalScreenInfo[],
+  fullScreenModals: ModalScreenInfo[]
+): JSX.Element => {
   const RootStack = createNativeStackNavigator();
   const appScreen = <RootStack.Screen name='App' component={app} />;
   const modalScreens = modals.map((m) => (
+    <RootStack.Screen key={m.name} name={m.name} component={m.component} />
+  ));
+  const fullScreenModalScreens = fullScreenModals.map((m) => (
     <RootStack.Screen key={m.name} name={m.name} component={m.component} />
   ));
 
@@ -37,6 +44,9 @@ export const genRootNavigator = (app: React.FC, modals: ModalScreenInfo[]): JSX.
       <RootStack.Group>{appScreen}</RootStack.Group>
 
       <RootStack.Group screenOptions={{ presentation: 'modal' }}>{modalScreens}</RootStack.Group>
+      <RootStack.Group screenOptions={{ presentation: 'fullScreenModal' }}>
+        {fullScreenModalScreens}
+      </RootStack.Group>
     </RootStack.Navigator>
   );
 };
