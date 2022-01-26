@@ -3,6 +3,7 @@ import { ScrollView } from 'react-native';
 import { View, Text, Button } from 'react-native-ui-lib';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenProps } from '@screens/index';
+import { signOut } from '@services/auth';
 
 type Props = NativeStackScreenProps<ScreenProps, 'Main'>;
 
@@ -13,6 +14,7 @@ export const Main: React.FC<Props> = ({ navigation }) => {
         <View padding-s4>
           <Text>Home</Text>
           <Button onPress={() => navigation.navigate('ScanModal')} label='SCAN' />
+          <Button onPress={() => signOut()} label='LOGOUT' style={{ marginTop: 8 }} />
         </View>
       </ScrollView>
     </View>
