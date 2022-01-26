@@ -13,6 +13,10 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
+    "extra": {
+      "supabaseUrl": "https://gcandiaiqogcvmdzyzfx.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTYzOTA0MzQ2MCwiZXhwIjoxOTU0NjE5NDYwfQ.cVcwGiPOv_EkHw9nOzpfaze3uDt_u-L-vf1DMVvfvXU"
+    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
