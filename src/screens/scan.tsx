@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Dimensions, Vibration } from 'react-native';
+import { StyleSheet, Dimensions, Vibration, Alert } from 'react-native';
 import { ScreenProps } from '@screens/index';
 import { View, Text, Button } from 'react-native-ui-lib';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BarcodeFormat, useScanBarcodes } from 'vision-camera-code-scanner';
 import { AnimatedBarcodeRegion } from '@components/AnimatedBarcodeRegion';
+import { getSneaker } from '@services/sneaker';
 
 type Props = NativeStackScreenProps<ScreenProps, 'Example'>;
 
@@ -14,10 +15,10 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
   const devices = useCameraDevices();
   const device = devices.back;
   const cameraRef = useRef<Camera | null>(null);
-  const [scannedBarcodes, setScannedBarcodes] = useState<string[]>([]);
-  const [frameProcessorDisabled, setFrameProcessorDisable] = useState(false);
+  const deviceScale = Dimensions.get('screen').scale;
 
-  const [frameProcessorEmpty] = useScanBarcodes([]);
+  const [scannedBarcodes, setScannedBarcodes] = useState<string[]>([]);
+
   const [frameProcessor, barcodes] = useScanBarcodes([
     BarcodeFormat.EAN_13,
     BarcodeFormat.EAN_8,
@@ -25,12 +26,23 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
     BarcodeFormat.UPC_E,
   ]);
 
+  const scanDelay = 1000;
+  const lastScanTimestampRef = useRef(0);
+  const alertOpenRef = useRef(false);
+
   useEffect(() => {
+    if (alertOpenRef.current === true) {
+      return;
+    }
+
+    if (new Date().getTime() < lastScanTimestampRef.current + scanDelay) {
+      return;
+    }
+
     if (barcodes.length > 0 && barcodes[0].rawValue) {
-      const barcode = barcodes.slice(0, 1)[0];
+      const barcode = barcodes[0];
       const value = barcode.rawValue;
 
-      const deviceScale = Dimensions.get('screen').scale;
       const cornerPointsY = (barcode.cornerPoints ?? []).map(
         (cornerPoint) => cornerPoint.y / deviceScale
       );
@@ -46,14 +58,37 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
         return;
       }
 
-      setFrameProcessorDisable(true);
-
-      setTimeout(() => {
-        setFrameProcessorDisable(false);
-      }, 1000);
-
-      setScannedBarcodes(scannedBarcodes.concat([value!]));
       Vibration.vibrate();
+      lastScanTimestampRef.current = new Date().getTime();
+
+      getSneaker(value!)
+        .then((data) => {
+          setScannedBarcodes(scannedBarcodes.concat([value!]));
+          Vibration.vibrate();
+
+          alertOpenRef.current = true;
+          Alert.alert(data?.sku.name ?? '', 'Sneaker found', [
+            {
+              text: 'Continue',
+              onPress: () => {
+                alertOpenRef.current = false;
+              },
+              style: 'default',
+            },
+          ]);
+        })
+        .catch(() => {
+          alertOpenRef.current = true;
+          Alert.alert('Error', 'Sneaker not found in database', [
+            {
+              text: 'Skip',
+              onPress: () => {
+                alertOpenRef.current = false;
+              },
+              style: 'cancel',
+            },
+          ]);
+        });
     }
   }, [barcodes]);
 
@@ -76,8 +111,8 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
         isActive={true}
         device={device!}
         style={StyleSheet.absoluteFill}
-        frameProcessor={frameProcessorDisabled ? frameProcessorEmpty : frameProcessor}
-        frameProcessorFps={30}
+        frameProcessor={frameProcessor}
+        frameProcessorFps={60}
       >
         <SafeAreaView style={{ flex: 1 }}>
           <View
