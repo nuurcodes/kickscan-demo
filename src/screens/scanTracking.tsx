@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSharedValue, withTiming } from 'react-native-reanimated';
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Vibration, Alert } from 'react-native';
 import { ScreenProps } from '@screens/index';
 import { View, Text, Button } from 'react-native-ui-lib';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,46 +7,27 @@ import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BarcodeFormat, useScanBarcodes } from 'vision-camera-code-scanner';
 import { AnimatedBarcodeRegion } from '@components/AnimatedBarcodeRegion';
-import { AnimatedOverlay } from '@components/AnimatedOverlay';
-import { getSneaker } from '@services/sneaker';
-import { Barcode } from '@models/Barcode';
-import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import { supabase } from '@lib/supabase';
 
 type Props = NativeStackScreenProps<ScreenProps, 'Example'>;
 
-export const Scan: React.FC<Props> = ({ navigation }) => {
+// TODO: Remove this screen
+export const ScanTracking: React.FC<Props> = ({ navigation }) => {
   const devices = useCameraDevices();
   const device = devices.back;
   const cameraRef = useRef<Camera | null>(null);
   const deviceScale = Dimensions.get('screen').scale;
 
   const [scannedBarcodes, setScannedBarcodes] = useState<string[]>([]);
-  const [lastScanned, setLastScanned] = useState<Barcode | string | null>(null);
-  const [expanded, setExpanded] = useState(false);
 
-  const intensity = useSharedValue(0);
-
-  useEffect(() => {
-    if (expanded) {
-      intensity.value = withTiming(100, { duration: 300 });
-    } else {
-      intensity.value = withTiming(0, { duration: 300 });
-    }
-  }, [expanded]);
-
-  const [frameProcessor, barcodes] = useScanBarcodes([
-    BarcodeFormat.EAN_13,
-    BarcodeFormat.EAN_8,
-    BarcodeFormat.UPC_A,
-    BarcodeFormat.UPC_E,
-  ]);
+  const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.CODE_128]);
 
   const scanDelay = 1000;
   const lastScanTimestampRef = useRef(0);
+  const alertOpenRef = useRef(false);
 
   useEffect(() => {
-    if (expanded) {
+    if (alertOpenRef.current === true) {
       return;
     }
 
@@ -57,7 +37,8 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
 
     if (barcodes.length > 0 && barcodes[0].rawValue) {
       const barcode = barcodes[0];
-      const value = barcode.rawValue;
+
+      let barcodeValue = barcode.rawValue ?? '';
 
       const cornerPointsY = (barcode.cornerPoints ?? []).map(
         (cornerPoint) => cornerPoint.y / deviceScale
@@ -74,18 +55,29 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
         return;
       }
 
-      lastScanTimestampRef.current = new Date().getTime();
+      if (barcodeValue.includes(' ')) {
+        const secondPart = barcodeValue.split(' ')[1];
+        barcodeValue = secondPart.substring(1, secondPart.length - 3);
+      }
 
-      getSneaker(value!)
-        .then((data) => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          setScannedBarcodes(scannedBarcodes.concat([value!]));
-          setLastScanned(data);
-        })
-        .catch(() => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          setLastScanned(value!);
-        });
+      const isDuplicateBarcode = scannedBarcodes.includes(barcodeValue);
+
+      if (isDuplicateBarcode) {
+        alertOpenRef.current = true;
+        Alert.alert('Error', 'Barcode already scanned', [
+          {
+            text: 'Close',
+            onPress: () => {
+              alertOpenRef.current = false;
+            },
+            style: 'cancel',
+          },
+        ]);
+      } else {
+        Vibration.vibrate();
+        lastScanTimestampRef.current = new Date().getTime();
+        setScannedBarcodes(scannedBarcodes.concat([barcodeValue!]));
+      }
     }
   }, [barcodes]);
 
@@ -111,32 +103,35 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
         frameProcessor={frameProcessor}
         frameProcessorFps={60}
       >
-        <BlurView style={{ flex: 1 }} intensity={intensity.value}>
-          <SafeAreaView style={{ flex: 1 }}>
-            <View
-              padding-s4
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-              }}
-            >
-              <AnimatedBarcodeRegion expanded={expanded} />
-              <View style={{ position: 'absolute', top: 0, right: 16 }}>
-                <Button
-                  label={`(${scannedBarcodes.length}) done`}
-                  onPress={() => navigation.pop()}
-                />
-              </View>
-              <AnimatedOverlay
-                expanded={expanded}
-                lastScanned={lastScanned}
-                setExpanded={setExpanded}
+        <SafeAreaView style={{ flex: 1 }}>
+          <View
+            padding-s4
+            style={{
+              flexGrow: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+            }}
+          >
+            <AnimatedBarcodeRegion expanded={false} />
+            <View style={{ position: 'absolute', top: 0, right: 16 }}>
+              <Button
+                label={`(${scannedBarcodes.length}) done`}
+                onPress={async () => {
+                  // TODO: Mutation
+                  const { error } = await supabase
+                    .from('abdul_parcels')
+                    .upsert(scannedBarcodes.map((bc) => ({ barcode: bc })));
+                  if (error) {
+                    Alert.alert('Failed to upload data');
+                  } else {
+                    navigation.pop();
+                  }
+                }}
               />
             </View>
-          </SafeAreaView>
-        </BlurView>
+          </View>
+        </SafeAreaView>
       </Camera>
     </View>
   );
