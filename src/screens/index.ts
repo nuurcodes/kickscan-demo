@@ -9,11 +9,10 @@ import { Login } from '@screens/auth/Login';
 import { Register } from '@screens/auth/Register';
 import { ResetPassword } from '@screens/auth/ResetPassword';
 import { Scan } from '@screens/scan';
-import { ScanTracking } from './scanTracking';
 
 // TODO: Remove scan tracking modal
 export type Tabs = 'Main' | 'WIP' | 'Settings';
-export type Modal = 'ScanModal' | 'ScanTrackingModal' | 'ExampleModal';
+export type Modal = 'ScanModal' | 'ExampleModal';
 export type Screen =
   | 'Main'
   | 'Example'
@@ -21,12 +20,10 @@ export type Screen =
   | 'Login'
   | 'Register'
   | 'ResetPassword'
-  | 'Scan'
-  | 'ScanTracking';
+  | 'Scan';
 
 export type ModalProps = {
   ScanModal: undefined;
-  ScanTrackingModal: undefined;
   ExampleModal: undefined;
 };
 export type ScreenProps = {
@@ -93,14 +90,6 @@ const screens: ScreenLayouts = {
       headerShown: false,
     }),
   },
-  ScanTracking: {
-    name: 'ScanTracking',
-    component: ScanTracking,
-    options: () => ({
-      title: 'Scan tracking',
-      headerShown: false,
-    }),
-  },
 };
 
 const HomeStack = () => genStackNavigator([screens.Main, screens.Example]);
@@ -108,7 +97,6 @@ const ExampleStack = () => genStackNavigator([screens.Example]);
 const SettingsStack = () => genStackNavigator([screens.Settings]);
 const ExampleModalStack = () => genStackNavigator([screens.Main]);
 const ScanModalStack = () => genStackNavigator([screens.Scan]);
-const ScanTrackingModalStack = () => genStackNavigator([screens.ScanTracking]);
 const AuthStack = () => genStackNavigator([screens.Login, screens.Register, screens.ResetPassword]);
 
 // Tabs
@@ -156,22 +144,11 @@ const modals: ModalScreenLayouts = {
       title: 'ScanModal',
     }),
   },
-  ScanTrackingModal: {
-    name: 'ScanTrackingModal',
-    component: ScanTrackingModalStack,
-    options: () => ({
-      title: 'ScanTrackingModal',
-    }),
-  },
 };
 
 // Root Navigator
 export const RootNavigator = (): JSX.Element =>
-  genRootNavigator(
-    TabNavigator,
-    [modals.ExampleModal],
-    [modals.ScanModal, modals.ScanTrackingModal]
-  );
+  genRootNavigator(TabNavigator, [modals.ExampleModal], [modals.ScanModal]);
 
 // Auth Navigator
 export const AuthNavigator = (): JSX.Element => AuthStack();
