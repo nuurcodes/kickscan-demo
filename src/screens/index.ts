@@ -10,7 +10,6 @@ import { Register } from '@screens/auth/Register';
 import { ResetPassword } from '@screens/auth/ResetPassword';
 import { Scan } from '@screens/scan';
 
-// TODO: Remove scan tracking modal
 export type Tabs = 'Main' | 'WIP' | 'Settings';
 export type Modal = 'ScanModal' | 'ExampleModal';
 export type Screen =
