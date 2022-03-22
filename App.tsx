@@ -12,6 +12,7 @@ import { IconComponent } from '@components/icons';
 import { QueryClientProvider } from 'react-query';
 import { queryClient } from '@lib/reactQuery';
 import { useAuth } from '@hooks/useAuth';
+import { Query } from '@type/query';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 
@@ -19,14 +20,15 @@ function AppContent() {
   useAuthStateListener();
 
   const [ready, setReady] = useState(false);
-  const { data: session, isLoading: isAuthLoading } = useAuth();
+  const { data: session } = useAuth();
 
   const startApp = useCallback(async () => {
     await SplashScreen.preventAutoHideAsync();
 
     const fonts = [IconComponent.font];
     const fontAssets = fonts.map((font) => Font.loadAsync(font));
-    await Promise.all([...fontAssets]);
+    const fetchAuth = queryClient.fetchQuery([Query.SESSION]);
+    await Promise.all([...fontAssets, fetchAuth]);
 
     setReady(true);
     await SplashScreen.hideAsync();
@@ -36,13 +38,11 @@ function AppContent() {
     startApp();
   }, [startApp]);
 
-  const isAppReady = ready && !isAuthLoading;
-
   return (
     <SafeAreaProvider>
       <StatusBar style='auto' />
       <GestureHandlerRootView style={{ flex: 1 }}>
-        {isAppReady ? (
+        {ready ? (
           <NavigationContainer>
             {session ? <RootNavigator /> : <AuthNavigator />}
           </NavigationContainer>

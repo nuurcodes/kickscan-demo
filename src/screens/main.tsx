@@ -13,7 +13,7 @@ export const Main: React.FC<Props> = ({ navigation }) => {
       <ScrollView contentInsetAdjustmentBehavior='automatic'>
         <View padding-s4>
           <Text>Home</Text>
-          <Button onPress={() => navigation.navigate('ScanModal')} label='SCAN' />
+          <Button onPress={() => navigation.navigate('ScanModal')} label='SCAN BARCODE' />
           <Button onPress={() => signOut()} label='LOGOUT' style={{ marginTop: 8 }} />
         </View>
       </ScrollView>

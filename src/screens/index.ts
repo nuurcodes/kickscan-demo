@@ -90,6 +90,7 @@ const screens: ScreenLayouts = {
     }),
   },
 };
+
 const HomeStack = () => genStackNavigator([screens.Main, screens.Example]);
 const ExampleStack = () => genStackNavigator([screens.Example]);
 const SettingsStack = () => genStackNavigator([screens.Settings]);

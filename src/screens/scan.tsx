@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Dimensions, Vibration, Alert } from 'react-native';
+import { useSharedValue, withTiming } from 'react-native-reanimated';
+import { StyleSheet, Dimensions } from 'react-native';
 import { ScreenProps } from '@screens/index';
 import { View, Text, Button } from 'react-native-ui-lib';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,7 +8,11 @@ import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BarcodeFormat, useScanBarcodes } from 'vision-camera-code-scanner';
 import { AnimatedBarcodeRegion } from '@components/AnimatedBarcodeRegion';
+import { AnimatedOverlay } from '@components/AnimatedOverlay';
 import { getSneaker } from '@services/sneaker';
+import { Barcode } from '@models/Barcode';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 
 type Props = NativeStackScreenProps<ScreenProps, 'Example'>;
 
@@ -18,6 +23,18 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
   const deviceScale = Dimensions.get('screen').scale;
 
   const [scannedBarcodes, setScannedBarcodes] = useState<string[]>([]);
+  const [lastScanned, setLastScanned] = useState<Barcode | string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const intensity = useSharedValue(0);
+
+  useEffect(() => {
+    if (expanded) {
+      intensity.value = withTiming(100, { duration: 300 });
+    } else {
+      intensity.value = withTiming(0, { duration: 300 });
+    }
+  }, [expanded]);
 
   const [frameProcessor, barcodes] = useScanBarcodes([
     BarcodeFormat.EAN_13,
@@ -28,10 +45,9 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
 
   const scanDelay = 1000;
   const lastScanTimestampRef = useRef(0);
-  const alertOpenRef = useRef(false);
 
   useEffect(() => {
-    if (alertOpenRef.current === true) {
+    if (expanded) {
       return;
     }
 
@@ -58,36 +74,17 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
         return;
       }
 
-      Vibration.vibrate();
       lastScanTimestampRef.current = new Date().getTime();
 
       getSneaker(value!)
         .then((data) => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setScannedBarcodes(scannedBarcodes.concat([value!]));
-          Vibration.vibrate();
-
-          alertOpenRef.current = true;
-          Alert.alert(data?.sku.name ?? '', 'Sneaker found', [
-            {
-              text: 'Continue',
-              onPress: () => {
-                alertOpenRef.current = false;
-              },
-              style: 'default',
-            },
-          ]);
+          setLastScanned(data);
         })
         .catch(() => {
-          alertOpenRef.current = true;
-          Alert.alert('Error', 'Sneaker not found in database', [
-            {
-              text: 'Skip',
-              onPress: () => {
-                alertOpenRef.current = false;
-              },
-              style: 'cancel',
-            },
-          ]);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setLastScanned(value!);
         });
     }
   }, [barcodes]);
@@ -114,22 +111,32 @@ export const Scan: React.FC<Props> = ({ navigation }) => {
         frameProcessor={frameProcessor}
         frameProcessorFps={60}
       >
-        <SafeAreaView style={{ flex: 1 }}>
-          <View
-            padding-s4
-            style={{
-              flexGrow: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-            }}
-          >
-            <AnimatedBarcodeRegion />
-            <View style={{ position: 'absolute', top: 0, right: 16 }}>
-              <Button label={`(${scannedBarcodes.length}) done`} onPress={() => navigation.pop()} />
+        <BlurView style={{ flex: 1 }} intensity={intensity.value}>
+          <SafeAreaView style={{ flex: 1 }}>
+            <View
+              padding-s4
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+              }}
+            >
+              <AnimatedBarcodeRegion expanded={expanded} />
+              <View style={{ position: 'absolute', top: 0, right: 16 }}>
+                <Button
+                  label={`(${scannedBarcodes.length}) done`}
+                  onPress={() => navigation.pop()}
+                />
+              </View>
+              <AnimatedOverlay
+                expanded={expanded}
+                lastScanned={lastScanned}
+                setExpanded={setExpanded}
+              />
             </View>
-          </View>
-        </SafeAreaView>
+          </SafeAreaView>
+        </BlurView>
       </Camera>
     </View>
   );
